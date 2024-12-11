@@ -275,3 +275,207 @@ CREATE TABLE PUB_EMPLEADO (
     CONSTRAINT pk_pubempfun PRIMARY KEY (cod_pub, dni_empleado, funcion)
 );
 
+---- REPASO PARA EXAMEN -----
+
+DROP DATABASE IF EXISTS PUBS_PROVINCIALES_REPASO;
+CREATE DATABASE PUBS_PROVINCIALES_REPASO;
+
+DROP TABLE IF EXISTS EMPLEADO CASCADE;
+CREATE TABLE EMPLEADO (
+    dni_empleado CHAR(9) PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    domicilio VARCHAR(100)
+);
+
+DROP TABLE IF EXISTS LOCALIDAD CASCADE;
+CREATE TABLE LOCALIDAD (
+    cod_localidad INT PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL
+);
+
+DROP TABLE IF EXISTS PUB CASCADE;
+CREATE TABLE PUB (
+    cod_pub SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    licencia_fiscal VARCHAR(20) NOT NULL,
+    domicilio VARCHAR(100),
+    fecha_apertura DATE DEFAULT CURRENT_DATE,
+    horario CHAR(4) CHECK (horario IN ('HOR1', 'HOR2', 'HOR3')),
+    cod_localidad INT NOT NULL,
+    CONSTRAINT fk_cod_localidad FOREIGN KEY (cod_localidad)
+    REFERENCES LOCALIDAD(cod_localidad) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS TITULAR CASCADE;
+CREATE TABLE TITULAR (
+    dni_titular CHAR(9) PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    domicilio VARCHAR(100),
+    cod_pub INT NOT NULL,
+    CONSTRAINT fk_cod_pub FOREIGN KEY (cod_pub)
+    REFERENCES PUB(cod_pub) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS EXISTENCIAS CASCADE;
+CREATE TABLE EXISTENCIAS (
+    cod_articulo CHAR(20) PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    cantidad NUMERIC(8,2) NOT NULL,
+    precio NUMERIC (8,2) NOT NULL,
+    cod_pub INT NOT NULL,
+    CONSTRAINT fk_cod_pub FOREIGN KEY (cod_pub)
+    REFERENCES PUB(cod_pub) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS PUB_EMPLEADO CASCADE;
+CREATE TABLE PUB_EMPLEADO (
+    cod_pub INT,
+    dni_empleado CHAR(9),
+    funcion VARCHAR(9) CHECK (funcion in ('CAMARERO', 'SEGURIDAD', 'EMPLEADO')),
+    CONSTRAINT fk_dni_empleado FOREIGN KEY (dni_empleado)
+    REFERENCES EMPLEADO(dni_empleado) ON DELETE SET NULL,
+    CONSTRAINT fk_cod_pub FOREIGN KEY (cod_pub)
+    REFERENCES PUB(cod_pub) ON DELETE SET NULL,
+    CONSTRAINT pk_pub_empleado_func PRIMARY KEY (cod_pub, dni_empleado, funcion)
+);
+
+--- AHORA CON RESTRICCIONES A PARTE ---
+
+DROP TABLE IF EXISTS EMPLEADO CASCADE;
+CREATE TABLE EMPLEADO (
+    dni_empleado CHAR(9),
+    nombre VARCHAR(50),
+    domicilio VARCHAR(100)
+);
+
+DROP TABLE IF EXISTS LOCALIDAD CASCADE;
+CREATE TABLE LOCALIDAD (
+    cod_localidad INT,
+    nombre VARCHAR(50)
+);
+
+DROP TABLE IF EXISTS PUB CASCADE;
+CREATE TABLE PUB (
+    cod_pub SERIAL,
+    nombre VARCHAR(50),
+    licencia_fiscal VARCHAR(20),
+    domicilio VARCHAR(50),
+    fecha_apertura DATE,
+    horario CHAR(4),
+    cod_localidad INT
+);
+
+DROP TABLE IF EXISTS TITULAR CASCADE;
+CREATE TABLE TITULAR (
+    dni_titular CHAR(9),
+    nombre VARCHAR(50),
+    domicilio VARCHAR(100),
+    cod_pub INT
+);
+
+DROP TABLE IF EXISTS EXISTENCIAS CASCADE;
+CREATE TABLE EXISTENCIAS (
+    cod_articulo INT,
+    nombre VARCHAR(50),
+    cantidad NUMERIC(8,2),
+    precio NUMERIC (8,2),
+    cod_pub INT
+);
+
+DROP TABLE IF EXISTS PUB_EMPLEADO CASCADE;
+CREATE TABLE PUB_EMPLEADO (
+    cod_pub INT,
+    dni_empleado CHAR(9),
+    funcion VARCHAR(10)
+);
+
+ALTER TABLE EMPLEADO
+ALTER COLUMN nombre SET NOT NULL,
+ADD CONSTRAINT pk_dni_empleado PRIMARY KEY (dni_empleado)
+;
+
+ALTER TABLE LOCALIDAD
+ALTER COLUMN nombre SET NOT NULL,
+ADD CONSTRAINT pk_cod_localidad PRIMARY KEY (cod_localidad)
+;
+
+ALTER TABLE PUB
+ALTER COLUMN nombre SET NOT NULL,
+ALTER COLUMN licencia_fiscal SET NOT NULL,
+ALTER COLUMN fecha_apertura SET DEFAULT CURRENT_DATE,
+ADD CONSTRAINT ck_horario CHECK (horario IN ('HOR1', 'HOR2', 'HOR3')),
+ADD CONSTRAINT fk_cod_localidad FOREIGN KEY (cod_localidad)
+REFERENCES LOCALIDAD(cod_localidad) ON DELETE SET NULL,
+ADD CONSTRAINT pk_cod_pub PRIMARY KEY (cod_pub)
+;
+
+ALTER TABLE PUB
+ALTER COLUMN nombre SET NOT NULL,
+ADD CONSTRAINT ck_horario CHECK (horario IN ('')),
+ADD CONSTRAINT fk_cod_localidad FOREIGN KEY (cod_localidad)
+REFERENCES LOCALIDAD(cod_localidad) ON DELETE SET NULL
+;
+
+ALTER TABLE TITULAR
+ALTER COLUMN nombre SET NOT NULL,
+ADD CONSTRAINT pk_dni_titular PRIMARY KEY (dni_titular),
+ADD CONSTRAINT fk_cod_pub FOREIGN KEY (cod_pub)
+REFERENCES PUB(cod_pub) ON DELETE SET NULL
+;
+
+ALTER TABLE EXISTENCIAS
+ALTER COLUMN nombre SET NOT NULL,
+ALTER COLUMN cantidad SET NOT NULL,
+ALTER COLUMN precio SET NOT NULL,
+ADD CONSTRAINT pk_cod_articulo PRIMARY KEY (cod_articulo),
+ADD CONSTRAINT fk_cod_pub FOREIGN KEY (cod_pub)
+REFERENCES PUB(cod_pub) ON DELETE SET NULL
+;
+
+ALTER TABLE PUB_EMPLEADO
+ADD CONSTRAINT fk_cod_pub FOREIGN KEY (cod_pub)
+REFERENCES PUB(cod_pub) ON DELETE SET NULL,
+ADD CONSTRAINT fk_dni_empleado FOREIGN KEY (dni_empleado)
+REFERENCES EMPLEADO(dni_empleado) ON DELETE SET NULL,
+ADD CONSTRAINT pk_codpub_dniempleado_func PRIMARY KEY (cod_pub, dni_empleado, funcion)
+;
+
+CREATE VIEW empleados_activos AS
+SELECT nombre, puesto, salario
+FROM EMPLEADOS
+WHERE es_activo = TRUE;
+
+CREATE VIEW vista AS
+SELECT nombre, salario, apellido
+FROM EMPLEADOS
+WHERE salario > 100
+;
+
+--- EJERCICIO CHATGPT DE REPASO ---
+
+CREATE TABLE BIBLIOTECA;
+
+DROP TABLE IF EXISTS AUTOR CASCADE;
+CREATE TABLE AUTOR (
+    id_autor VARCHAR(10) PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL,
+    pais VARCHAR(50) NOT NULL
+);
+
+DROP TABLE IF EXISTS CATEGORIA CASCADE;
+CREATE TABLE CATEGORIA (
+    cod_categoria VARCHAR(10) PRIMARY KEY,
+    nombre VARCHAR (10) CONSTRAINT ck_categorio CHECK (categoria IN ('FICCION', 'CIENCIA', 'HISTORIA'))
+);
+
+DROP TABLE IF EXISTS LIBRO CASCADE;
+CREATE TABLE LIBRO (
+    cod_libro VARCHAR(10) UNIQUE PRIMARY KEY,
+    titulo VARCHAR (100) NOT NULL,
+    id_autor INT NOT NULL,
+    id_categoria VARCHAR(50) CONSTRAINT ck_categorio CHECK (categoria IN ('FICCION', 'CIENCIA', 'HISTORIA')),
+    CONSTRAINT fk_titulo FOREIGN KEY (id_titulo)
+    REFERENCES AUTOR(id_autor) ON DELETE CASCADE,
+    CONSTRAINT fk_categoria FOREIGN KEY (id_categoria)
+    REFERENCES CATEGORIA(id_categoria) ON DELETE CASCADE
+);
